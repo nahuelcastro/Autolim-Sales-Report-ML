@@ -1,6 +1,9 @@
 import xlrd
 import os
 import sys
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 current_directory = os.getcwd()
 
@@ -106,6 +109,8 @@ def printAll():
     print ("    microfibras: " + str(total_full_sales["micro"] + total_common_sales["micro"]))
     print ("    XL:          " + str(total_full_sales["xl"] + total_common_sales["xl"]))
     print ("    cepillos:    " + str(total_full_sales["cepillo"] + total_common_sales["cepillo"]))
+    print("")
+    print("")
 
     if len(no_match) > 1: # porque empieza en i = 1
         print("")
@@ -113,13 +118,58 @@ def printAll():
         print("ATENCION:")
         print(" NO MATCHEARON LOS SIGUIENTES:")
         print(no_match)
+        print("")
 
-    #print (full_sales)
+def sendEmail(message):
+    # create message object instance
+    msg = MIMEMultipart()
+    
+    
+    #message = "Thank you"
+    recipients = ["EXAMPLE1@gmail.com","EXAMPLE2@gmail.com"]
+    
+    # setup the parameters of the message
+    password = "EXAMPLEPASSWORD"
+    msg['From'] = "EXAMPLE@gmail.com"
+    msg['To'] = ", ".join(recipients)
+    msg['Subject'] = "REPORTE VENTAS MERCADOLIBRE"
+    
+    # add in the message body
+    msg.attach(MIMEText(message, 'plain'))
+    
+    #create server
+    server = smtplib.SMTP('smtp.gmail.com: 587')
+    
+    server.starttls()
+    
+    # Login Credentials for sending the mail
+    server.login(msg['From'], password)
+    
+    # send the message via the server.
+    server.sendmail(msg['From'], msg['To'], msg.as_string())
+    
+    server.quit()
 
 
 calculateSales(common_sales, total_common_sales)
 calculateSales(full_sales, total_full_sales)
 printAll()
+
+desition_mail  = input('Queres enviarte este reporte via mail? (y/n): ')
+print("")
+
+if desition_mail == 'y' or desition_mail == 'Y':
+    message = "FULL  : [Autolim: " +  str(total_full_sales["autolim"]) + ", Paños: "  +  str(total_full_sales["micro"]) + ", XL: "  +  str(total_full_sales["xl"]) + ", Cepillos: "  +  str(total_full_sales["cepillo"]) + " ]" + "\n" + "COMUN: [Autolim: " +  str(total_common_sales["autolim"]) + ", Paños: "  +  str(total_common_sales["micro"]) + ", XL: "  +  str(total_common_sales["xl"]) + ", Cepillos: "  +  str(total_common_sales["cepillo"]) + " ]"  
+      
+
+    sendEmail(message) 
+    print ("Eviado correctamente :)")
+
+elif desition_mail == 'n' or desition_mail == 'N':
+    print("Ok, otra vez sera :(")
+
+else:
+    print ("Te dije que respondas Y o N, que parte no entendes?")
 
 
 
