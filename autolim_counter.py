@@ -21,6 +21,7 @@ full_sales = []
 total_full_sales = {'autolim':0, 'micro':0, 'xl':0, 'cepillo':0 }
 total_common_sales = {'autolim':0, 'micro':0, 'xl':0, 'cepillo':0 }
 column_date = 1
+column_deliver_ok = 2
 column_shipping = 25
 column_id = 14
 column_quantity = 5
@@ -39,11 +40,15 @@ for i in range(sheet.nrows - 1 ):
         cellValue_shipping = sheet.cell_value(i,column_shipping)
         cellValue_id = sheet.cell_value(i,column_id)
         cellValue_quantity = sheet.cell_value(i,column_quantity)
+        cellValue_deliver_ok = sheet.cell_value(i,column_deliver_ok)
 
-        if "Full" in cellValue_shipping : # okFull
-            full_sales.append((cellValue_id,cellValue_quantity))
-        else:
-            common_sales.append((cellValue_id,cellValue_quantity))
+        if not("Cancelada" in cellValue_deliver_ok):         # "Cancelada por el comprador"
+            if "Full" in cellValue_shipping : # okFull
+                full_sales.append((cellValue_id,cellValue_quantity))
+            else:
+                common_sales.append((cellValue_id,cellValue_quantity))
+
+
 
 
 
