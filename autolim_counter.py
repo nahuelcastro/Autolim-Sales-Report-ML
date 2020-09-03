@@ -25,6 +25,9 @@ column_deliver_ok = 2
 column_shipping = 25
 column_id = 14
 column_quantity = 5
+column_sale_id_ml = 0
+column_buyer_name = 17
+column_buyer_last_name = 18
 
 # "set" of ids of only one Autolim
 x1_autolim = ["Limpia Tu Tapizado Autolim Telas Cueros Alfombra Plasticos","Limpia Tu Tapizado  Autolim Telas Cueros Alfombra Plasticos","Limpiador Sillones Chenille Pana Tela Gamuza Cuero Autolim","Crema Limpia Tapizados Telas Cuero Butacas Detailing Autolim","Limpia Tapizados Telas Cuero Butacas Techo Detailing Autolim","Limpiador Tapizados Sillones Chenille Pana Tela Autolim",]
@@ -32,7 +35,7 @@ no_match = []
 # print("Num de filas:", sheet.nrows ) # example to print number of rows
 
 # iterate all sales, adding the ones for the month i want to their respective array (common or full)
-for i in range(sheet.nrows - 1 ):
+for i in range(sheet.nrows ):
 
     cellValue = sheet.cell_value(i,column_date)
     if mes in str(cellValue): # okDate
@@ -41,22 +44,26 @@ for i in range(sheet.nrows - 1 ):
         cellValue_id = sheet.cell_value(i,column_id)
         cellValue_quantity = sheet.cell_value(i,column_quantity)
         cellValue_deliver_ok = sheet.cell_value(i,column_deliver_ok)
+        cellValue_sale_id_ml = sheet.cell_value(i,column_sale_id_ml)
+        cellValue_buyer_name = sheet.cell_value(i,column_buyer_name)
+        cellValue_buyer_last_name = sheet.cell_value(i,column_buyer_last_name)
 
         if not("Cancelada" in cellValue_deliver_ok):         # "Cancelada por el comprador"
             if "Full" in cellValue_shipping : # okFull
-                full_sales.append((cellValue_id,cellValue_quantity))
+                full_sales.append((cellValue_id, cellValue_quantity, cellValue_sale_id_ml, cellValue_buyer_name, cellValue_buyer_last_name))
             else:
-                common_sales.append((cellValue_id,cellValue_quantity))
+                common_sales.append((cellValue_id, cellValue_quantity, cellValue_sale_id_ml, cellValue_buyer_name, cellValue_buyer_last_name))
 
 
 
 
 
 def calculateSales( sales, total_sales):
-
     for i in range(len(sales)):
         sale_id = sales[i][0]
         sale_quantity = sales[i][1]
+        sale_id_ml = sales[i][2]
+        sale_full_name = sales[i][3] + " " + sales[i][4]
 
         if sale_id in x1_autolim:
             total_sales["autolim"] += int(sale_quantity)
@@ -64,6 +71,7 @@ def calculateSales( sales, total_sales):
         elif sale_id == "Kit Autolim - Limpia Tapizados + Paño De Microfibra":
             total_sales["autolim"] += int(sale_quantity)
             total_sales["micro"]   += int(sale_quantity)
+            #print(" 1 Autolim, 1 Paño x (" + sale_quantity + "), venta: #" + sale_id_ml + " " + sale_full_name )
 
         elif sale_id == "Pack X 3 Limpia Tapizados Telas Cuero Butacas Techo Autolim":
             total_sales["autolim"] += 3 * int(sale_quantity)
@@ -71,17 +79,20 @@ def calculateSales( sales, total_sales):
         elif sale_id == "Kit Autolim X 2 Limpia Tapizados + 2 Paños De Microfibra":
             total_sales["autolim"] += 2 * int(sale_quantity)
             total_sales["micro"]   += 2 * int(sale_quantity)
+            #print(" 2 Autolim, 2 Paño x (" + sale_quantity + "), venta: #" + sale_id_ml + " " + sale_full_name )
         
         elif sale_id == "Limpiador Multiproposito + 2 Paños De Microfibra Autolim !":
             total_sales["autolim"] += int(sale_quantity)
             total_sales["micro"]   += 2 * int(sale_quantity)
+            #print(" 1 Autolim, 2 Paño x (" + sale_quantity + "), venta: #" + sale_id_ml + " " + sale_full_name )
 
         elif sale_id == "Kit Autolim - 2 Limpia Tapizados + 2 Paños De Microfibra Xl":
             total_sales["autolim"] += 2 * int(sale_quantity)
             total_sales["xl"]      += 2 * int(sale_quantity)
 
         elif sale_id == "Paño De Microfibra Autolim 37,5 X 37,5 Cm Limpieza Interior!":
-            total_sales["micro"]   += int(sale_quantity)
+            total_sales["micro"]   +=  int(sale_quantity)
+            #print(" 0 Autolim, 1 Paño x (" + sale_quantity + "), venta: #" + sale_id_ml + " " + sale_full_name )
 
         elif sale_id == "Paño De Microfibra Tamaño Xl Autolim - 61 X 77 Cm !!!":
             total_sales["xl"]   += int(sale_quantity)
