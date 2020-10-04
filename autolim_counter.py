@@ -15,9 +15,11 @@ openFile = xlrd.open_workbook(filePath)
 sheet = openFile.sheet_by_name("Ventas AR")
 
 mes  = input('Ingrese el mes que desea analizar: ')
+year  = "2020"
 
 common_sales = []
 full_sales = []
+canceled_sales = []
 total_full_sales = {'autolim':0, 'micro':0, 'xl':0, 'cepillo':0 }
 total_common_sales = {'autolim':0, 'micro':0, 'xl':0, 'cepillo':0 }
 column_date = 1
@@ -31,14 +33,15 @@ column_buyer_last_name = 18
 
 # "set" of ids of only one Autolim
 x1_autolim = ["Limpia Tu Tapizado Autolim Telas Cueros Alfombra Plasticos","Limpia Tu Tapizado  Autolim Telas Cueros Alfombra Plasticos","Limpiador Sillones Chenille Pana Tela Gamuza Cuero Autolim","Crema Limpia Tapizados Telas Cuero Butacas Detailing Autolim","Limpia Tapizados Telas Cuero Butacas Techo Detailing Autolim","Limpiador Tapizados Sillones Chenille Pana Tela Autolim",]
+canceled_txt = ["Cancelada","En devolucion", "En devoluc", "Cancelado", "Cancelaste", "Canc", "canc"]
 no_match = []
 # print("Num de filas:", sheet.nrows ) # example to print number of rows
 
 # iterate all sales, adding the ones for the month i want to their respective array (common or full)
-for i in range(sheet.nrows ):
+for i in range(sheet.nrows):
 
-    cellValue = sheet.cell_value(i,column_date)
-    if mes in str(cellValue): # okDate
+    cellValue_date = sheet.cell_value(i,column_date)
+    if mes in str(cellValue_date) and year in str(cellValue_date) : # okDate
 
         cellValue_shipping = sheet.cell_value(i,column_shipping)
         cellValue_id = sheet.cell_value(i,column_id)
@@ -48,13 +51,39 @@ for i in range(sheet.nrows ):
         cellValue_buyer_name = sheet.cell_value(i,column_buyer_name)
         cellValue_buyer_last_name = sheet.cell_value(i,column_buyer_last_name)
 
-        if not("Cancelada" in cellValue_deliver_ok):         # "Cancelada por el comprador"
+        # no se porque no me quiere andar lo de meter todos los posibles textos de canceladas en una lista y qie se fije que no este ahi, ahora para salir del paso lo dejo asi, pero hay que mirarlo bien despues
+        if not("Cancelada" in cellValue_deliver_ok or "Canc" in cellValue_deliver_ok or "ev" in cellValue_deliver_ok ):         # "Cancelada por el comprador"
+        #if not(cellValue_deliver_ok in canceled_txt ):         # "Cancelada por el comprador"
             if "Full" in cellValue_shipping : # okFull
-                full_sales.append((cellValue_id, cellValue_quantity, cellValue_sale_id_ml, cellValue_buyer_name, cellValue_buyer_last_name))
+                # full_sales.append((cellValue_id, cellValue_quantity, cellValue_sale_id_ml, cellValue_buyer_name, cellValue_buyer_last_name, cellValue_date))
+                full_sales.append((cellValue_id, cellValue_quantity, cellValue_sale_id_ml, cellValue_buyer_last_name, cellValue_date, cellValue_deliver_ok))
             else:
-                common_sales.append((cellValue_id, cellValue_quantity, cellValue_sale_id_ml, cellValue_buyer_name, cellValue_buyer_last_name))
+                # common_sales.append((cellValue_id, cellValue_quantity, cellValue_sale_id_ml, cellValue_buyer_name, cellValue_buyer_last_name, cellValue_date))
+                common_sales.append((cellValue_id, cellValue_quantity, cellValue_sale_id_ml,cellValue_buyer_last_name, cellValue_date, cellValue_deliver_ok))
+        else:
+            canceled_sales.append((cellValue_id, cellValue_quantity, cellValue_sale_id_ml, cellValue_buyer_name, cellValue_buyer_last_name, cellValue_date, cellValue_deliver_ok))
 
-
+# def detect_aligment_error(){
+#
+#     titleRow = 2
+#
+#     cellValue_shipping = sheet.cell_value(titleRow,column_shipping)
+#     cellValue_id = sheet.cell_value(titleRow,column_id)
+#     cellValue_quantity = sheet.cell_value(titleRow,column_quantity)
+#     cellValue_deliver_ok = sheet.cell_value(titleRow,column_deliver_ok)
+#     cellValue_sale_id_ml = sheet.cell_value(titleRow,column_sale_id_ml)
+#     cellValue_buyer_name = sheet.cell_value(titleRow,column_buyer_name)
+#     cellValue_buyer_last_name = sheet.cell_value(titleRow,column_buyer_last_name)
+#
+#     if not("Forma de entrega" in cellValue_shipping):
+#         print("")
+#         print("*************************************")
+#         print("ERROR EN LA COLUMNA FORMA DE ENTREGA")
+#         print("*************************************")
+#
+# }
+#
+# detect_aligment_error()
 
 
 
@@ -63,7 +92,8 @@ def calculateSales( sales, total_sales):
         sale_id = sales[i][0]
         sale_quantity = sales[i][1]
         sale_id_ml = sales[i][2]
-        sale_full_name = sales[i][3] + " " + sales[i][4]
+        #sale_full_name = sales[i][3] + " " + sales[i][4]
+        sale_full_name = sales[i][4]
 
         if sale_id in x1_autolim:
             total_sales["autolim"] += int(sale_quantity)
@@ -75,12 +105,17 @@ def calculateSales( sales, total_sales):
 
         elif sale_id == "Pack X 3 Limpia Tapizados Telas Cuero Butacas Techo Autolim":
             total_sales["autolim"] += 3 * int(sale_quantity)
-            
+
         elif sale_id == "Kit Autolim X 2 Limpia Tapizados + 2 Paños De Microfibra":
             total_sales["autolim"] += 2 * int(sale_quantity)
             total_sales["micro"]   += 2 * int(sale_quantity)
             #print(" 2 Autolim, 2 Paño x (" + sale_quantity + "), venta: #" + sale_id_ml + " " + sale_full_name )
-        
+
+        elif sale_id == "Kit Autolim X 2 Limpia Tapizados + 1 Paño De Microfibra":
+            total_sales["autolim"] += 2 * int(sale_quantity)
+            total_sales["micro"]   += 1 * int(sale_quantity)
+            #print(" 2 Autolim, 2 Paño x (" + sale_quantity + "), venta: #" + sale_id_ml + " " + sale_full_name )
+
         elif sale_id == "Limpiador Multiproposito + 2 Paños De Microfibra Autolim !":
             total_sales["autolim"] += int(sale_quantity)
             total_sales["micro"]   += 2 * int(sale_quantity)
@@ -97,12 +132,16 @@ def calculateSales( sales, total_sales):
         elif sale_id == "Paño De Microfibra Tamaño Xl Autolim - 61 X 77 Cm !!!":
             total_sales["xl"]   += int(sale_quantity)
 
-        else: 
+        else:
             no_match.append(sales[i])
 
 
 def printAll():
+
     print("")
+    print("------------------------------")
+    print("")
+    print("------------------------------")
 
     print ("COMUN:")
     print ("    Autolim:     " + str(total_common_sales["autolim"]))
@@ -128,8 +167,44 @@ def printAll():
     print("")
     print("")
 
+
+    print("")
+    print("------------------------------")
+    print("------------------------------")
+    print("CANCELADAS:")
+    print("")
+    #print(canceled_sales)
+    for i in range(len(canceled_sales)):
+        print(canceled_sales[i])
+    print("")
+
+
+    print("")
+    print("------------------------------")
+    print("------------------------------")
+    print("COMUNES:")
+    print("")
+    common_sales.sort()
+    for i in range(len(common_sales)):
+        print(common_sales[i])
+    print("")
+
+
+    print("")
+    print("------------------------------")
+    print("------------------------------")
+    print("FULL:")
+    print("")
+    full_sales.sort()
+    for i in range(len(full_sales)):
+        print(full_sales[i])
+    print("")
+
+
     if len(no_match) > 1: # porque empieza en i = 1
         print("")
+        print("------------------------------")
+        print("------------------------------")
         print("------------------------------")
         print("ATENCION:")
         print(" NO MATCHEARON LOS SIGUIENTES:")
@@ -139,31 +214,31 @@ def printAll():
 def sendEmail(message):
     # create message object instance
     msg = MIMEMultipart()
-    
-    
+
+
     #message = "Thank you"
     recipients = ["EXAMPLE1@gmail.com","EXAMPLE2@gmail.com"]
-    
+
     # setup the parameters of the message
     password = "EXAMPLEPASSWORD"
     msg['From'] = "EXAMPLE@gmail.com"
     msg['To'] = ", ".join(recipients)
     msg['Subject'] = "REPORTE VENTAS MERCADOLIBRE"
-    
+
     # add in the message body
     msg.attach(MIMEText(message, 'plain'))
-    
+
     #create server
     server = smtplib.SMTP('smtp.gmail.com: 587')
-    
+
     server.starttls()
-    
+
     # Login Credentials for sending the mail
     server.login(msg['From'], password)
-    
+
     # send the message via the server.
     server.sendmail(msg['From'], msg['To'], msg.as_string())
-    
+
     server.quit()
 
 
@@ -171,14 +246,14 @@ calculateSales(common_sales, total_common_sales)
 calculateSales(full_sales, total_full_sales)
 printAll()
 
-desition_mail  = input('Queres enviarte este reporte via mail? (y/n): ')
+desition_mail = input('Queres enviarte este reporte via mail? (y/n): ')
 print("")
 
 if desition_mail == 'y' or desition_mail == 'Y':
-    message = "FULL  : [Autolim: " +  str(total_full_sales["autolim"]) + ", Paños: "  +  str(total_full_sales["micro"]) + ", XL: "  +  str(total_full_sales["xl"]) + ", Cepillos: "  +  str(total_full_sales["cepillo"]) + " ]" + "\n" + "COMUN: [Autolim: " +  str(total_common_sales["autolim"]) + ", Paños: "  +  str(total_common_sales["micro"]) + ", XL: "  +  str(total_common_sales["xl"]) + ", Cepillos: "  +  str(total_common_sales["cepillo"]) + " ]"  
-      
+    message = "FULL  : [Autolim: " +  str(total_full_sales["autolim"]) + ", Paños: "  +  str(total_full_sales["micro"]) + ", XL: "  +  str(total_full_sales["xl"]) + ", Cepillos: "  +  str(total_full_sales["cepillo"]) + " ]" + "\n" + "COMUN: [Autolim: " +  str(total_common_sales["autolim"]) + ", Paños: "  +  str(total_common_sales["micro"]) + ", XL: "  +  str(total_common_sales["xl"]) + ", Cepillos: "  +  str(total_common_sales["cepillo"]) + " ]"
 
-    sendEmail(message) 
+
+    sendEmail(message)
     print ("Eviado correctamente :)")
 
 elif desition_mail == 'n' or desition_mail == 'N':
@@ -186,7 +261,3 @@ elif desition_mail == 'n' or desition_mail == 'N':
 
 else:
     print ("Te dije que respondas Y o N, que parte no entendes?")
-
-
-
-
