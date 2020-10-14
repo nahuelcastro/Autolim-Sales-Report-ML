@@ -14,8 +14,8 @@ filePath = current_directory + "/ventas.xlsx"
 openFile = xlrd.open_workbook(filePath)
 sheet = openFile.sheet_by_name("Ventas AR")
 
-mes  = input('Ingrese el mes que desea analizar: ')
-year  = "2020"
+mes = input('Ingrese el mes que desea analizar: ')
+year = "2020"
 
 common_sales = []
 full_sales = []
@@ -56,7 +56,7 @@ for i in range(sheet.nrows):
         #if not(cellValue_deliver_ok in canceled_txt ):         # "Cancelada por el comprador"
             if "Full" in cellValue_shipping : # okFull
                 # full_sales.append((cellValue_id, cellValue_quantity, cellValue_sale_id_ml, cellValue_buyer_name, cellValue_buyer_last_name, cellValue_date))
-                full_sales.append((cellValue_id, cellValue_quantity, cellValue_sale_id_ml, cellValue_buyer_last_name, cellValue_date, cellValue_deliver_ok))
+                    full_sales.append((cellValue_id, cellValue_quantity, cellValue_sale_id_ml, cellValue_buyer_last_name, cellValue_date, cellValue_deliver_ok))
             else:
                 # common_sales.append((cellValue_id, cellValue_quantity, cellValue_sale_id_ml, cellValue_buyer_name, cellValue_buyer_last_name, cellValue_date))
                 common_sales.append((cellValue_id, cellValue_quantity, cellValue_sale_id_ml,cellValue_buyer_last_name, cellValue_date, cellValue_deliver_ok))
