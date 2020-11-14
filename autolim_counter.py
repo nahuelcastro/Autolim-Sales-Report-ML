@@ -20,8 +20,9 @@ year = "2020"
 common_sales = []
 full_sales = []
 canceled_sales = []
-total_full_sales = {'autolim':0, 'micro':0, 'xl':0, 'cepillo':0 }
-total_common_sales = {'autolim':0, 'micro':0, 'xl':0, 'cepillo':0 }
+aux_arr = []
+total_full_sales = {'autolim': 0, 'micro': 0, 'xl': 0, 'cepillo': 0}
+total_common_sales = {'autolim': 0, 'micro': 0, 'xl': 0, 'cepillo': 0}
 column_date = 1
 column_deliver_ok = 2
 column_shipping = 25
@@ -32,7 +33,7 @@ column_buyer_name = 17
 column_buyer_last_name = 18
 
 # "set" of ids of only one Autolim
-x1_autolim = ["Limpia Tu Tapizado Autolim Telas Cueros Alfombra Plasticos","Limpia Tu Tapizado  Autolim Telas Cueros Alfombra Plasticos","Limpiador Sillones Chenille Pana Tela Gamuza Cuero Autolim","Crema Limpia Tapizados Telas Cuero Butacas Detailing Autolim","Limpia Tapizados Telas Cuero Butacas Techo Detailing Autolim","Limpiador Tapizados Sillones Chenille Pana Tela Autolim",]
+x1_autolim = ["Limpia Tu Tapizado Autolim Telas Cueros Alfombra Plasticos", "Limpia Tu Tapizado  Autolim Telas Cueros Alfombra Plasticos", "Limpiador Sillones Chenille Pana Tela Gamuza Cuero Autolim","Crema Limpia Tapizados Telas Cuero Butacas Detailing Autolim", "Limpia Tapizados Telas Cuero Butacas Techo Detailing Autolim", "Limpiador Tapizados Sillones Chenille Pana Tela Autolim", "Limpia Tapizados Multiusos Autolim Tela Cuero Pana Alfombras"]
 canceled_txt = ["Cancelada","En devolucion", "En devoluc", "Cancelado", "Cancelaste", "Canc", "canc"]
 no_match = []
 # print("Num de filas:", sheet.nrows ) # example to print number of rows
@@ -51,12 +52,58 @@ for i in range(sheet.nrows):
         cellValue_buyer_name = sheet.cell_value(i,column_buyer_name)
         cellValue_buyer_last_name = sheet.cell_value(i,column_buyer_last_name)
 
+        # For sequences, (strings, lists, tuples), use the fact that empty sequences are false
+        if cellValue_deliver_ok == '' or cellValue_deliver_ok == ' ':
+            print("HOLAAAAAA")
+            j = i + 1
+            aux_cellValue_shipping = sheet.cell_value(j, column_shipping)
+            namee = cellValue_buyer_last_name
+            
+            if "Full" in cellValue_shipping:  # okFull
+                
+                while aux_cellValue_shipping == '' or aux_cellValue_shipping == ' ' and (j in range(sheet.nrows)):
+                    
+                    #cellValue_shipping = sheet.cell_value(i, column_shipping)
+                    aux_cellValue_id = sheet.cell_value(j, column_id)
+                    aux_cellValue_quantity = sheet.cell_value(j, column_quantity)
+                    aux_cellValue_deliver_ok = sheet.cell_value(j, column_deliver_ok)
+                    aux_cellValue_sale_id_ml = sheet.cell_value(j, column_sale_id_ml)
+                    aux_cellValue_buyer_name = sheet.cell_value(j, column_buyer_name)
+                    aux_cellValue_date = sheet.cell_value(j, column_date)
+                    cellValue_buyer_last_name = sheet.cell_value(i, column_buyer_last_name)
+                    # full_sales.append((aux_cellValue_id, aux_cellValue_quantity, aux_cellValue_sale_id_ml, namee, aux_cellValue_date, aux_cellValue_deliver_ok))
+                    aux_arr.append((aux_cellValue_id, aux_cellValue_quantity, aux_cellValue_sale_id_ml, namee, aux_cellValue_date, aux_cellValue_deliver_ok))
+                    print(aux_cellValue_id)
+                    j = j+1
+                    if j in range(sheet.nrows):
+                        aux_cellValue_shipping = sheet.cell_value(j, column_shipping)
+                    else:
+                        break
+            else:
+                
+                while aux_cellValue_shipping == '' or aux_cellValue_shipping == ' ' and (j in range(sheet.nrows)):
+
+                    aux_cellValue_id = sheet.cell_value(j, column_id)
+                    aux_cellValue_quantity = sheet.cell_value(j, column_quantity)
+                    aux_cellValue_deliver_ok = sheet.cell_value(j, column_deliver_ok)
+                    aux_cellValue_sale_id_ml = sheet.cell_value(j, column_sale_id_ml)
+                    aux_cellValue_buyer_name = sheet.cell_value(j, column_buyer_name)
+                    aux_cellValue_date = sheet.cell_value(j, column_date)
+                    cellValue_buyer_last_name = sheet.cell_value(i, column_buyer_last_name)
+                    # common_sales.append((aux_cellValue_id, aux_cellValue_quantity, aux_cellValue_sale_id_ml, namee, aux_cellValue_date, aux_cellValue_deliver_ok))
+                    aux_arr.append((aux_cellValue_id, aux_cellValue_quantity, aux_cellValue_sale_id_ml, namee, aux_cellValue_date, aux_cellValue_deliver_ok))
+                    print(aux_cellValue_id)
+                    j = j+1
+                    if j in range(sheet.nrows):
+                        aux_cellValue_shipping = sheet.cell_value(j, column_shipping)
+                    else:
+                        break
         # no se porque no me quiere andar lo de meter todos los posibles textos de canceladas en una lista y qie se fije que no este ahi, ahora para salir del paso lo dejo asi, pero hay que mirarlo bien despues
-        if not("Cancelada" in cellValue_deliver_ok or "Canc" in cellValue_deliver_ok or "ev" in cellValue_deliver_ok ):         # "Cancelada por el comprador"
+        elif not("Cancelada" in cellValue_deliver_ok or "Canc" in cellValue_deliver_ok or "ev" in cellValue_deliver_ok):         # "Cancelada por el comprador"
         #if not(cellValue_deliver_ok in canceled_txt ):         # "Cancelada por el comprador"
-            if "Full" in cellValue_shipping : # okFull
+            if "Full" in cellValue_shipping: # okFull
                 # full_sales.append((cellValue_id, cellValue_quantity, cellValue_sale_id_ml, cellValue_buyer_name, cellValue_buyer_last_name, cellValue_date))
-                    full_sales.append((cellValue_id, cellValue_quantity, cellValue_sale_id_ml, cellValue_buyer_last_name, cellValue_date, cellValue_deliver_ok))
+                    full_sales.append((cellValue_id, cellValue_quantity, cellValue_sale_id_ml, cellValue_buyer_last_name, cellValue_date, cellValue_deliver_ok))    
             else:
                 # common_sales.append((cellValue_id, cellValue_quantity, cellValue_sale_id_ml, cellValue_buyer_name, cellValue_buyer_last_name, cellValue_date))
                 common_sales.append((cellValue_id, cellValue_quantity, cellValue_sale_id_ml,cellValue_buyer_last_name, cellValue_date, cellValue_deliver_ok))
@@ -199,6 +246,20 @@ def printAll():
     for i in range(len(full_sales)):
         print(full_sales[i])
     print("")
+    
+    
+    print("")
+    print("------------------------------")
+    print("------------------------------")
+    print("Aux:")
+    print("")
+    aux_arr.sort()
+    for i in range(len(aux_arr)):
+        print(aux_arr[i])
+    print("")
+
+    
+    
 
 
     if len(no_match) > 1: # porque empieza en i = 1
