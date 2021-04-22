@@ -7,17 +7,16 @@ from email.mime.text import MIMEText
 
 current_directory = os.getcwd()
 
-#print (current_directory)
-#filePath = "/home/nahuel/Documents/autolim/ventas.xlsx"
-
-filePath = current_directory + "/ventas.xlsx"
+#filePath = current_directory + "/ventas.xlsx"
+filePath = os.path.join(current_directory, "ventas.xlsx")
 openFile = xlrd.open_workbook(filePath)
 sheet = openFile.sheet_by_name("Ventas AR")
 
 mes = input('Ingrese el mes que desea analizar: ')
-year = "2020"
+year = "2021" # current year
 
 common_sales = []
+common_sales_date = []
 full_sales = []
 canceled_sales = []
 aux_arr = []
@@ -31,6 +30,9 @@ column_quantity = 5
 column_sale_id_ml = 0
 column_buyer_name = 17
 column_buyer_last_name = 18
+column_collection = 10
+
+recaudacion_neta = 0
 
 # "set" of ids of only one Autolim
 x1_autolim = ["Limpia Tu Tapizado Autolim Telas Cueros Alfombra Plasticos", "Limpia Tu Tapizado  Autolim Telas Cueros Alfombra Plasticos", "Limpiador Sillones Chenille Pana Tela Gamuza Cuero Autolim","Crema Limpia Tapizados Telas Cuero Butacas Detailing Autolim", "Limpia Tapizados Telas Cuero Butacas Techo Detailing Autolim", "Limpiador Tapizados Sillones Chenille Pana Tela Autolim", "Limpia Tapizados Multiusos Autolim Tela Cuero Pana Alfombras"]
@@ -51,18 +53,28 @@ for i in range(sheet.nrows):
         cellValue_sale_id_ml = sheet.cell_value(i,column_sale_id_ml)
         cellValue_buyer_name = sheet.cell_value(i,column_buyer_name)
         cellValue_buyer_last_name = sheet.cell_value(i,column_buyer_last_name)
+        cellValue_collection = sheet.cell_value(i,column_collection)
 
         # For sequences, (strings, lists, tuples), use the fact that empty sequences are false
+        # si la venta se hizo con carrito
         if cellValue_deliver_ok == '' or cellValue_deliver_ok == ' ':
-            print("HOLAAAAAA")
+            print("CON CARRITO")
             j = i + 1
             aux_cellValue_shipping = sheet.cell_value(j, column_shipping)
             namee = cellValue_buyer_last_name
-            
+
+            # si se no se cancelo, que sume al total neto
+            aux_cellValue_deliver_ok = sheet.cell_value(j, column_deliver_ok)
+            cellValue_collection = sheet.cell_value(i,column_collection)
+            if (not("Cancelada" in cellValue_deliver_ok or "Canc" in cellValue_deliver_ok or "ev" in cellValue_deliver_ok)):         # "Cancelada por el comprador"
+                if( not (cellValue_collection == '' or cellValue_collection == ' ')):
+                    print (cellValue_collection)
+                    recaudacion_neta = recaudacion_neta + int(cellValue_collection)
+
             if "Full" in cellValue_shipping:  # okFull
-                
+
                 while aux_cellValue_shipping == '' or aux_cellValue_shipping == ' ' and (j in range(sheet.nrows)):
-                    
+
                     #cellValue_shipping = sheet.cell_value(i, column_shipping)
                     aux_cellValue_id = sheet.cell_value(j, column_id)
                     aux_cellValue_quantity = sheet.cell_value(j, column_quantity)
@@ -72,7 +84,7 @@ for i in range(sheet.nrows):
                     aux_cellValue_date = sheet.cell_value(j, column_date)
                     cellValue_buyer_last_name = sheet.cell_value(i, column_buyer_last_name)
                     # full_sales.append((aux_cellValue_id, aux_cellValue_quantity, aux_cellValue_sale_id_ml, namee, aux_cellValue_date, aux_cellValue_deliver_ok))
-                    aux_arr.append((aux_cellValue_id, aux_cellValue_quantity, aux_cellValue_sale_id_ml, namee, aux_cellValue_date, aux_cellValue_deliver_ok))
+                    aux_arr.append((aux_cellValue_id, aux_cellValue_quantity, aux_cellValue_sale_id_ml, namee, aux_cellValue_date, aux_cellValue_deliver_ok, "carrito"))
                     print(aux_cellValue_id)
                     j = j+1
                     if j in range(sheet.nrows):
@@ -80,7 +92,7 @@ for i in range(sheet.nrows):
                     else:
                         break
             else:
-                
+
                 while aux_cellValue_shipping == '' or aux_cellValue_shipping == ' ' and (j in range(sheet.nrows)):
 
                     aux_cellValue_id = sheet.cell_value(j, column_id)
@@ -91,7 +103,7 @@ for i in range(sheet.nrows):
                     aux_cellValue_date = sheet.cell_value(j, column_date)
                     cellValue_buyer_last_name = sheet.cell_value(i, column_buyer_last_name)
                     # common_sales.append((aux_cellValue_id, aux_cellValue_quantity, aux_cellValue_sale_id_ml, namee, aux_cellValue_date, aux_cellValue_deliver_ok))
-                    aux_arr.append((aux_cellValue_id, aux_cellValue_quantity, aux_cellValue_sale_id_ml, namee, aux_cellValue_date, aux_cellValue_deliver_ok))
+                    aux_arr.append((aux_cellValue_id, aux_cellValue_quantity, aux_cellValue_sale_id_ml, namee, aux_cellValue_date, aux_cellValue_deliver_ok, "carrito"))
                     print(aux_cellValue_id)
                     j = j+1
                     if j in range(sheet.nrows):
@@ -103,12 +115,16 @@ for i in range(sheet.nrows):
         #if not(cellValue_deliver_ok in canceled_txt ):         # "Cancelada por el comprador"
             if "Full" in cellValue_shipping: # okFull
                 # full_sales.append((cellValue_id, cellValue_quantity, cellValue_sale_id_ml, cellValue_buyer_name, cellValue_buyer_last_name, cellValue_date))
-                    full_sales.append((cellValue_id, cellValue_quantity, cellValue_sale_id_ml, cellValue_buyer_last_name, cellValue_date, cellValue_deliver_ok))    
+                    full_sales.append((cellValue_id, cellValue_quantity, cellValue_sale_id_ml, cellValue_buyer_last_name, cellValue_date, cellValue_deliver_ok, cellValue_collection))
             else:
                 # common_sales.append((cellValue_id, cellValue_quantity, cellValue_sale_id_ml, cellValue_buyer_name, cellValue_buyer_last_name, cellValue_date))
-                common_sales.append((cellValue_id, cellValue_quantity, cellValue_sale_id_ml,cellValue_buyer_last_name, cellValue_date, cellValue_deliver_ok))
+                common_sales.append((cellValue_id, cellValue_quantity, cellValue_sale_id_ml,cellValue_buyer_last_name, cellValue_date, cellValue_deliver_ok, cellValue_collection))
+
+                aux_date = cellValue_date.split()
+                dia_numero = int(aux_date[0])
+                common_sales_date.append((dia_numero,cellValue_date,cellValue_id, cellValue_quantity, cellValue_sale_id_ml,cellValue_buyer_last_name, cellValue_deliver_ok))
         else:
-            canceled_sales.append((cellValue_id, cellValue_quantity, cellValue_sale_id_ml, cellValue_buyer_name, cellValue_buyer_last_name, cellValue_date, cellValue_deliver_ok))
+            canceled_sales.append((cellValue_id, cellValue_quantity, cellValue_sale_id_ml, cellValue_buyer_name, cellValue_buyer_last_name, cellValue_date, cellValue_deliver_ok, cellValue_collection))
 
 # def detect_aligment_error(){
 #
@@ -135,12 +151,18 @@ for i in range(sheet.nrows):
 
 
 def calculateSales( sales, total_sales):
+    global recaudacion_neta
+
     for i in range(len(sales)):
         sale_id = sales[i][0]
         sale_quantity = sales[i][1]
         sale_id_ml = sales[i][2]
-        #sale_full_name = sales[i][3] + " " + sales[i][4]
         sale_full_name = sales[i][4]
+
+        # suma el total neto de cada compra 
+        n = len(sales[i])
+        if( not (sales[i][n-1] == '' or sales[i][n-1] == ' ')):
+            recaudacion_neta = recaudacion_neta + int(sales[i][n - 1])
 
         if sale_id in x1_autolim:
             total_sales["autolim"] += int(sale_quantity)
@@ -148,7 +170,6 @@ def calculateSales( sales, total_sales):
         elif sale_id == "Kit Autolim - Limpia Tapizados + Paño De Microfibra":
             total_sales["autolim"] += int(sale_quantity)
             total_sales["micro"]   += int(sale_quantity)
-            #print(" 1 Autolim, 1 Paño x (" + sale_quantity + "), venta: #" + sale_id_ml + " " + sale_full_name )
 
         elif sale_id == "Pack X 3 Limpia Tapizados Telas Cuero Butacas Techo Autolim":
             total_sales["autolim"] += 3 * int(sale_quantity)
@@ -187,7 +208,7 @@ def printAll():
 
     print("")
     print("------------------------------")
-    print("")
+    print(mes.upper())
     print("------------------------------")
 
     print ("COMUN:")
@@ -212,6 +233,7 @@ def printAll():
     print ("    XL:          " + str(total_full_sales["xl"] + total_common_sales["xl"]))
     print ("    cepillos:    " + str(total_full_sales["cepillo"] + total_common_sales["cepillo"]))
     print("")
+    print ("    recaudacion neta: $" + str(recaudacion_neta))
     print("")
 
 
@@ -240,14 +262,25 @@ def printAll():
     print("")
     print("------------------------------")
     print("------------------------------")
+    print("COMUNES POR FECHA:")
+    print("")
+    common_sales_date.sort()
+    for i in range(len(common_sales_date)):
+        print(common_sales_date[i])
+    print("")
+
+
+    print("")
+    print("------------------------------")
+    print("------------------------------")
     print("FULL:")
     print("")
     full_sales.sort()
     for i in range(len(full_sales)):
         print(full_sales[i])
     print("")
-    
-    
+
+
     print("")
     print("------------------------------")
     print("------------------------------")
@@ -258,8 +291,9 @@ def printAll():
         print(aux_arr[i])
     print("")
 
-    
-    
+
+
+
 
 
     if len(no_match) > 1: # porque empieza en i = 1
